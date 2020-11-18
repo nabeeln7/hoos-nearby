@@ -43,12 +43,26 @@
                     So gatewaysInRangeMap will not be empty. Access the first gateway safely. #}
                     <h3>
                         <a target="_blank"
-                           href="../app-deployer?ip={{ encodeToBase64(gatewaysInRangeMap.values()[0]) }}">
-                            Deploy App</a>
+                           href="../app-deployer?ip={{ encodeToBase64(gatewaysInRangeMap.values()[0]) }}"
+                        >
+                            Deploy App
+                        </a>
                     </h3>
                 </div>
             </div>
-
+            <div class="row">
+                <div class="col">
+                    {# since the linkGraphUrl is present, we have at least one gateway in range.
+                    So gatewaysInRangeMap will not be empty. Access the first gateway safely. #}
+                    <h3>
+                        <a target="_blank"
+                           href="../policy-setter?ip={{ encodeToBase64(gatewaysInRangeMap.values()[0]) }}"
+                        >
+                            Set Policy
+                        </a>
+                    </h3>
+                </div>
+            </div>
             {% if platformLastRestartTime %}
             <div class="row">
                 <div class="col">

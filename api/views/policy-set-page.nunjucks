@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+
+    <link rel="stylesheet" href="css/starter-template.css">
+
+    <style type="text/css">
+    	body {
+		  padding-top: 5rem;
+		}
+		.starter-template {
+		  padding: 3rem 1.5rem;
+		  text-align: center;
+		}
+		.my-row {
+	       border: 3px solid yellow;
+		}
+		.my-col {
+			border: 3px dotted blue;
+		}
+    </style>
+
+	<script>
+		function setPolicy() {
+			const gatewayIP = $("#gatewayIP")[0].value;
+
+			const policy = [];
+			$("#policy-setter > div.row").each(function() {
+				const sensors = $(this).find(".sensor-picker").selectpicker("val");
+				const apps = $(this).find(".app-picker").selectpicker("val");
+				let schedule = [];
+				$(this).find("select.time-picker").each(function() {
+					const t = $(this).selectpicker("val");
+					if(t.length == 2) {
+						if(t[0] == '*') {
+							schedule.push(`*`);
+						} else {
+							schedule.push(`${t[0]}-${t[1]}`);
+						}
+					} else if(t.length == 1) {
+						schedule.push(`${t[0]}`);
+					} else {
+						schedule.push(`*`);
+					}
+				});
+				const block = $(this).find(".block-picker").selectpicker("val");
+				policy.push([sensors, apps, schedule, block]);
+			})
+			const url = "/policy-receiver";
+			fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ policy: policy, gatewayIP: gatewayIP })
+			})
+				.then(response => {
+					if(response.status === 200) {
+						return response.json();
+					} else {
+						alert(`Error with status ${response.status}`);
+					}
+				})
+				.then(data => {
+					for(const ip in data) {
+						if(data[ip] != 200) {
+							alert("Failed to set policy");
+							return;
+						}
+					}
+					alert("Set policy successfully!");
+				})
+				.catch((err) => {
+					console.info(err + " url: " + url);
+				});
+		}
+		function addPolicyRow() {
+			let newSelectors = $('#select-template').clone().removeAttr('id').appendTo("#policy-setter");
+			$("#policy-setter > div.row:last").find("select").selectpicker();
+		}
+		function removePolicyRow(e) {
+			e.parentElement.parentElement.remove();
+		}
+	</script>
+
+    <title>Hoos Nearby?</title>
+  </head>
+  <body>
+	<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+		<a class="navbar-brand" href="#">Hoos Nearby?</a>
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+	  	</button>
+	</nav>
+    <main role="main" class="container">
+    	<form action="/policy-receiver" method="post" enctype="multipart/form-data">
+		  	<div class="starter-template">
+				<div class="row">
+                    <div class="col-12 text-left">
+						<div class="row">
+							<div class="col-9 text-left">
+								<h3>Policy</h3>
+							</div>
+							<div class="col-3 text-right">
+								<button type="button" class="btn btn-secondary" onClick="addPolicyRow()">Add Policy</button>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-2 text-left">
+								Sensors
+							</div>
+							<div class="col-2 text-left">
+								Apps
+							</div>
+							<div class="col-6 text-left">
+								Schedule
+							</div>
+							<div class="col-2 text-left">
+								Block/Allow
+							</div>
+						</div>
+						<div style="display:none">
+							<div class="row" id="select-template">
+								<div class="col-2 text-left">
+									<select class="sensor-picker" multiple data-width="100%">
+										<option value="*">*</option>
+										{% for device in devices %}
+											<option value="{{ device }}">{{ device }}</option>
+										{% endfor %}
+									</select>
+								</div>
+								<div class="col-2 text-left">
+									<select class="app-picker" multiple data-width="100%">
+										<option value="*">*</option>
+										{% for app in apps %}
+											<option value="{{ app }}">{{ app }}</option>
+										{% endfor %}
+									</select>
+								</div>
+								<div class="col-6 text-left">
+									<div class="row">
+										{% for unit, start, end in timeUnit %}
+											<div class="col-3 text-left">
+												<select class="time-picker" title="{{ unit }}" data-max-options="2" multiple data-width="100%">
+													<optgroup label="{{ unit }}">
+													<option value="*">*</option>
+													{% for i in range(start, end) %}
+														<option value="{{ i }}">{{ i }}</option>
+													{% endfor %}
+												</select>
+											</div>
+										{% endfor %}
+									</div>
+								</div>
+								<div class="col-1 text-left">
+									<select class="block-picker" data-width="100%">
+										<option>Block</option>
+										<option>Allow</option>
+									</select>
+								</div>
+								<div class="col-1 text-left">
+									<button type="button" class="btn btn-secondary" onClick="removePolicyRow(this)">Remove</button>
+								</div>
+							</div>
+						</div>
+						<div id="policy-setter">
+							{% for i in range(0, policy.length) %}
+								<div class="row">
+									<div class="col-2 text-left">
+										<select class="sensor-picker" multiple data-width="100%">
+											<option value="*">*</option>
+											{% for device in devices %}
+												<option value="{{ device }}">{{ device }}</option>
+											{% endfor %}
+										</select>
+									</div>
+									<div class="col-2 text-left">
+										<select class="app-picker" multiple data-width="100%">
+											{% for app in apps %}
+												<option value="{{ app }}">{{ app }}</option>
+											{% endfor %}
+										</select>
+									</div>
+									<div class="col-6 text-left">
+										<div class="row">
+											{% for unit, start, end in timeUnit %}
+												<div class="col-3 text-left">
+													<select class="time-picker" title="{{ unit }}" data-max-options="2" multiple data-width="100%">
+														<optgroup label="{{ unit }}">
+														<option value="*">*</option>
+														{% for i in range(start, end) %}
+															<option value="{{ i }}">{{ i }}</option>
+														{% endfor %}
+													</select>
+												</div>
+											{% endfor %}
+										</div>
+									</div>
+									<div class="col-1 text-left">
+										<select class="block-picker" data-width="100%">
+											<option>Block</option>
+											<option>Allow</option>
+										</select>
+									</div>
+									<div class="col-1 text-left">
+										<button type="button" class="btn btn-secondary" onClick="removePolicyRow(this)">Remove</button>
+									</div>
+								</div>
+							{% endfor %}
+						</div>
+                    </div>
+				</div>
+
+				<div class="row mt-5"></div>
+
+				<div class="row">
+					<div class="col-12 text-center">
+						<input type="hidden" id="gatewayIP" name="gatewayIP" value="{{ gatewayIP }}">
+						<button type="button" class="btn btn-secondary" onClick="setPolicy()">Set Policy</button>
+					</div>
+				</div>
+				<div class="row mt-5"></div>
+			</div>
+		</form>
+
+    </main>
+
+	<!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+	<script>
+		let policy = {{ policy | dump | safe }};
+		$(window).on('load', function() {
+			$("#policy-setter > div.row").each(function(i) {
+				$(this).find("select").each(function(index){
+					if(index == 0 || index == 1) {
+						$(this).selectpicker("val", policy[i][index]);
+					} else if(2 <= index && index <= 5) {
+						$(this).selectpicker("val", policy[i][2][index - 2]);
+					} else {
+						$(this).selectpicker("val", policy[i][6]);
+					}
+				})
+			})
+		});
+	</script>
+  </body>
+</html>

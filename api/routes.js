@@ -5,18 +5,21 @@ const path = require('path');
 const webpageRenderController = require("./controllers/webpage-render-controller");
 const gatewayScanController = require("./controllers/gateway-scan-controller");
 const appDeployController = require("./controllers/app-deploy-controller");
+const policySetController = require("./controllers/policy-set-controller");
 
 module.exports = function(app) {
     //setup multipart form-data which allows clients to upload code and mapping files for execution
     //accepts two files. one with the form name as "code" and another called "metadata"
     const uploader = getMultipartFormDataUploader();
-
+    const storePolicy = policySetController.storePolicy();
     // app.get('/', webpageRenderController.renderIndexPage);
     app.get('/gateway', gatewayScanController.getGatewayDetails);
     app.get('/', gatewayScanController.getScanResults);
     app.get('/app-deployer', appDeployController.renderAppDeployPage);
     app.post('/deploy', uploader.fields([{name: 'app'}]), appDeployController.deployApp);
     app.get('/app', gatewayScanController.getAppDetails);
+    app.get('/policy-setter', storePolicy, policySetController.renderPolicySetPage);
+    app.post("/policy-receiver", storePolicy, policySetController.policyReceiver);
 };
 
 /**
