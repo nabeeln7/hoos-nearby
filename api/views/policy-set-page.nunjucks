@@ -161,8 +161,8 @@
 								</div>
 								<div class="col-1 text-left">
 									<select class="block-picker" data-width="100%">
-										<option>Block</option>
-										<option>Allow</option>
+										<option value="Block">Block</option>
+										<option value="Allow">Allow</option>
 									</select>
 								</div>
 								<div class="col-1 text-left">
@@ -183,6 +183,7 @@
 									</div>
 									<div class="col-2 text-left">
 										<select class="app-picker" multiple data-width="100%">
+											<option value="*">*</option>
 											{% for app in apps %}
 												<option value="{{ app }}">{{ app }}</option>
 											{% endfor %}
@@ -205,8 +206,8 @@
 									</div>
 									<div class="col-1 text-left">
 										<select class="block-picker" data-width="100%">
-											<option>Block</option>
-											<option>Allow</option>
+											<option value="Block">Block</option>
+											<option value="Allow">Allow</option>
 										</select>
 									</div>
 									<div class="col-1 text-left">
@@ -246,9 +247,20 @@
 					if(index == 0 || index == 1) {
 						$(this).selectpicker("val", policy[i][index]);
 					} else if(2 <= index && index <= 5) {
-						$(this).selectpicker("val", policy[i][2][index - 2]);
+						let time = []
+						if(policy[i][2][index - 2].length > 1) {
+							if(policy[i][2][index - 2].includes("*")) {
+								time.push("*");
+							} else if(policy[i][2][index - 2].includes("-")) {
+								time.push(policy[i][2][index - 2][0]);
+								time.push(policy[i][2][index - 2][2]);
+							}
+						} else {
+							time = policy[i][2][index - 2];
+						}
+						$(this).selectpicker("val", time);
 					} else {
-						$(this).selectpicker("val", policy[i][6]);
+						$(this).selectpicker("val", policy[i][3]);
 					}
 				})
 			})
