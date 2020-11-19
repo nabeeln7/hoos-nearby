@@ -5,3 +5,16 @@ body {
   padding: 3rem 1.5rem;
   text-align: center;
 }
+#policy-doc {
+  text-align: left;
+}
+#policy-doc table {
+  margin-left: auto;
+  margin-right: auto;
+}
+#policy-doc code {
+  color: #e83e8c;
+}
+#policy-doc pre {
+  margin-left: 2rem;
+}
