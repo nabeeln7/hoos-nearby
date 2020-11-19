@@ -259,8 +259,9 @@
 							if(policy[i][2][index - 2].includes("*")) {
 								time.push("*");
 							} else if(policy[i][2][index - 2].includes("-")) {
-								time.push(policy[i][2][index - 2][0]);
-								time.push(policy[i][2][index - 2][2]);
+								const t = policy[i][2][index - 2].split("-");
+								time.push(t[0]);
+								time.push(t[1]);
 							}
 						} else {
 							time = policy[i][2][index - 2];

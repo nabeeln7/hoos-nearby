@@ -7,7 +7,8 @@ exports.renderPolicySetPage = async function(req, res){
     const encodedGatewayIP = req.query.ip;
 
     if(encodedGatewayIP) {
-        const gatewayIP = utils.decodeFromBase64(encodedGatewayIP);
+        // const gatewayIP = utils.decodeFromBase64(encodedGatewayIP);
+        const gatewayIP = "172.27.45.246"
         const linkGraph = await utils.getLinkGraphData(gatewayIP);
         const linkGraphData = linkGraph["data"]; //{"G1": {"devices": [{"id": "d1",..}, {},..], ..}, "G2": {},...}
 
@@ -157,10 +158,10 @@ exports.policyReceiver = async function (req, res) {
 
     const newPolicy = policyParser(policy, gatewayAppMap);
 
-    const gatewayIps = [];
-    for(const gatewayId in linkGraph.data) {
-        gatewayIps.push(linkGraph.data[gatewayId].ip);
-    }
+    const gatewayIps = ["172.26.123.12"];
+    // for(const gatewayId in linkGraph.data) {
+    //     gatewayIps.push(linkGraph.data[gatewayId].ip);
+    // }
     const requests = [];
     for(const ip of gatewayIps) {
         const URL = `http://${ip}:5000/platform/update-privacy-policy`;
